@@ -7,12 +7,15 @@ const EmployeeComponent = () => {
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [email, setEmail] = useState('')
+    const [phoneNumber, setPhoneNumber] = useState('')
+    const [countryCode, setCountryCode] = useState('+91')
 
     const {id} = useParams();
     const [errors, setErrors] = useState({
         firstName: '',
         lastName: '',
-        email: ''
+        email: '',
+        phoneNumber: ''
     })
 
     const navigator = useNavigate();
@@ -24,6 +27,16 @@ const EmployeeComponent = () => {
                 setFirstName(response.data.firstName);
                 setLastName(response.data.lastName);
                 setEmail(response.data.email);
+                const phoneValue = response.data.phoneNumber || '';
+                const codes = ['+91', '+1', '+44', '+61', '+81', '+49', '+971'];
+                const matchedCode = codes.find((code) => phoneValue.startsWith(code));
+                if (matchedCode) {
+                    setCountryCode(matchedCode);
+                    setPhoneNumber(phoneValue.replace(matchedCode, ''));
+                } else {
+                    setCountryCode('+91');
+                    setPhoneNumber(phoneValue.replace(/^\+/, ''));
+                }
             }).catch(error => {
                 console.error(error);
             })
@@ -36,7 +49,12 @@ const EmployeeComponent = () => {
 
         if(validateForm()){
 
-            const employee = {firstName, lastName, email}
+            const employee = {
+                firstName,
+                lastName,
+                email,
+                phoneNumber: `${countryCode}${phoneNumber.trim()}`
+            }
             console.log(employee)
 
             if(id){
@@ -45,9 +63,11 @@ const EmployeeComponent = () => {
                     navigator('/employees');
                 }).catch(error => {
                     if (error?.response?.status === 409) {
+                        const message = (error?.response?.data?.message || '').toLowerCase()
                         setErrors((prevErrors) => ({
                             ...prevErrors,
-                            email: 'Email already taken'
+                            email: message.includes('email') ? 'Email already taken' : prevErrors.email,
+                            phoneNumber: message.includes('phone') ? 'Phone number already exists' : prevErrors.phoneNumber
                         }));
                     } else {
                         console.error(error);
@@ -59,9 +79,11 @@ const EmployeeComponent = () => {
                     navigator('/employees')
                 }).catch(error => {
                     if (error?.response?.status === 409) {
+                        const message = (error?.response?.data?.message || '').toLowerCase()
                         setErrors((prevErrors) => ({
                             ...prevErrors,
-                            email: 'Email already taken'
+                            email: message.includes('email') ? 'Email already taken' : prevErrors.email,
+                            phoneNumber: message.includes('phone') ? 'Phone number already exists' : prevErrors.phoneNumber
                         }));
                     } else {
                         console.error(error);
@@ -78,6 +100,16 @@ const EmployeeComponent = () => {
 
         const namePattern = /^[a-zA-Z][a-zA-Z\s'-]*$/;
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phonePatterns = {
+            '+91': /^[6-9]\d{9}$/,
+            '+1': /^\d{10}$/,
+            '+44': /^\d{10,11}$/,
+            '+61': /^\d{9}$/,
+            '+81': /^\d{9,10}$/,
+            '+49': /^\d{10,11}$/,
+            '+971': /^\d{9}$/
+        };
+        const selectedPattern = phonePatterns[countryCode] || /^\d{7,15}$/;
 
         if(firstName.trim()){
             if(!namePattern.test(firstName.trim())){
@@ -118,6 +150,18 @@ const EmployeeComponent = () => {
             }
         } else {
             errorsCopy.email = 'Email is required';
+            valid = false;
+        }
+
+        if(phoneNumber.trim()){
+            if(!selectedPattern.test(phoneNumber.trim())){
+                errorsCopy.phoneNumber = `Enter a valid phone number for ${countryCode}`;
+                valid = false;
+            } else {
+                errorsCopy.phoneNumber = '';
+            }
+        } else {
+            errorsCopy.phoneNumber = 'Phone number is required';
             valid = false;
         }
 
@@ -184,6 +228,36 @@ const EmployeeComponent = () => {
                             >
                             </input>
                             { errors.email && <div className='invalid-feedback'> { errors.email} </div> }
+                        </div>
+
+                        <div className='form-group mb-4'>
+                            <label className='form-label'>Phone Number</label>
+                            <div className='input-group input-group-lg'>
+                                <select
+                                    className='form-select form-select-sm'
+                                    value={countryCode}
+                                    onChange={(event) => setCountryCode(event.target.value)}
+                                    style={{ maxWidth: '160px' }}
+                                >
+                                    <option value='+91'>+91 (IN)</option>
+                                    <option value='+1'>+1 (US/CA)</option>
+                                    <option value='+44'>+44 (UK)</option>
+                                    <option value='+61'>+61 (AU)</option>
+                                    <option value='+81'>+81 (JP)</option>
+                                    <option value='+49'>+49 (DE)</option>
+                                    <option value='+971'>+971 (UAE)</option>
+                                </select>
+                                <input
+                                    type='text'
+                                    placeholder='Enter employee phone number'
+                                    name='phoneNumber'
+                                    value={phoneNumber}
+                                    className={`form-control ${ errors.phoneNumber ? 'is-invalid': '' }`}
+                                    onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                                >
+                                </input>
+                            </div>
+                            { errors.phoneNumber && <div className='invalid-feedback'> { errors.phoneNumber} </div> }
                         </div>
 
                         <div className='d-flex gap-2'>

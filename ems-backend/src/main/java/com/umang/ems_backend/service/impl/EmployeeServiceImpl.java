@@ -26,6 +26,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (employeeDto.getEmail() != null && employeeRepository.findByEmailIgnoreCase(employeeDto.getEmail().trim()).isPresent()) {
             throw new DuplicateResourceException("Email already taken");
         }
+        if (employeeDto.getPhoneNumber() != null && employeeRepository.findByPhoneNumber(employeeDto.getPhoneNumber().trim()).isPresent()) {
+            throw new DuplicateResourceException("Phone number already exists");
+        }
         Employee employee = EmployeeMapper.maptoEmployee(employeeDto);
         Employee savedEmployee = employeeRepository.save(employee);
         return EmployeeMapper.maptoEmployeeDto(savedEmployee);
@@ -60,9 +63,17 @@ public class EmployeeServiceImpl implements EmployeeService {
                         throw new DuplicateResourceException("Email already taken");
                     });
         }
+        if (updatedEmployee.getPhoneNumber() != null) {
+            employeeRepository.findByPhoneNumber(updatedEmployee.getPhoneNumber().trim())
+                    .filter(existing -> !existing.getId().equals(employeeId))
+                    .ifPresent(existing -> {
+                        throw new DuplicateResourceException("Phone number already exists");
+                    });
+        }
         employee.setFirstName(updatedEmployee.getFirstName());
         employee.setLastName(updatedEmployee.getLastName());
         employee.setEmail(updatedEmployee.getEmail());
+        employee.setPhoneNumber(updatedEmployee.getPhoneNumber());
 
         Employee updatedEmployeeObj = employeeRepository.save(employee);
 
@@ -87,10 +98,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         List<Employee> employees = employeeRepository
-                .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+            .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(
                         searchValue,
                         searchValue,
-                        searchValue
+                searchValue,
+                searchValue
                 );
 
         if (searchValue.matches("\\d+")) {
@@ -123,10 +135,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         Page<Employee> employees = employeeRepository
-                .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+            .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(
                         searchValue,
                         searchValue,
                         searchValue,
+                searchValue,
                         PageRequest.of(page, size)
                 );
 

@@ -15,6 +15,21 @@ public interface EmployeeRepository extends JpaRepository <Employee, Long>{
 			String email,
 			Pageable pageable
 	);
+
+	List<Employee> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(
+			String firstName,
+			String lastName,
+			String email,
+			String phoneNumber
+	);
+
+	Page<Employee> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrPhoneNumberContainingIgnoreCase(
+			String firstName,
+			String lastName,
+			String email,
+			String phoneNumber,
+			Pageable pageable
+	);
 	List<Employee> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
 			String firstName,
 			String lastName,
@@ -22,4 +37,6 @@ public interface EmployeeRepository extends JpaRepository <Employee, Long>{
 	);
 
 	Optional<Employee> findByEmailIgnoreCase(String email);
+
+	Optional<Employee> findByPhoneNumber(String phoneNumber);
 }

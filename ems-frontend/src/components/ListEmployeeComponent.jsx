@@ -9,6 +9,7 @@ const ListEmployeeComponent = () => {
     const [currentPage, setCurrentPage] = useState(0)
     const [totalPages, setTotalPages] = useState(0)
     const pageSize = 20
+    const [employeeToDelete, setEmployeeToDelete] = useState(null)
 
     const navigator = useNavigate();
 
@@ -59,8 +60,6 @@ const ListEmployeeComponent = () => {
     }
 
     function removeEmployee(id){
-        console.log(id);
-
         deleteEmployee(id).then((response) =>{
             if (searchQuery.trim()) {
                 handleSearchPage(currentPage)
@@ -70,6 +69,14 @@ const ListEmployeeComponent = () => {
         }).catch(error => {
             console.error(error);
         })
+    }
+
+    function confirmDeleteEmployee() {
+        if (!employeeToDelete) {
+            return
+        }
+        removeEmployee(employeeToDelete.id)
+        setEmployeeToDelete(null)
     }
 
     function handleSearchPage(page) {
@@ -115,7 +122,7 @@ const ListEmployeeComponent = () => {
                 <input
                     type='text'
                     className='animated-search__input'
-                    placeholder='Search by id, first name, last name, or email'
+                    placeholder='Search by id, first name, last name, email, or phone'
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                 />
@@ -130,6 +137,7 @@ const ListEmployeeComponent = () => {
                     <th>Employee First Name</th>
                     <th>Employee Last Name</th>
                     <th>Employee Email Id</th>
+                    <th>Employee Phone</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -141,10 +149,19 @@ const ListEmployeeComponent = () => {
                             <td>{employee.firstName}</td>
                             <td>{employee.lastName}</td>
                             <td>{employee.email}</td>
+                            <td>{employee.phoneNumber}</td>
                             <td>
                                 <div className='d-flex gap-2 flex-wrap'>
                                     <button className='btn btn-outline-primary btn-sm' onClick={() => updateEmployee(employee.id)}>Update</button>
-                                    <button className='btn btn-outline-danger btn-sm' onClick={() => removeEmployee(employee.id)}>Delete</button>
+                                    <button
+                                        className='btn btn-outline-danger btn-sm'
+                                        type='button'
+                                        data-bs-toggle='modal'
+                                        data-bs-target='#deleteEmployeeModal'
+                                        onClick={() => setEmployeeToDelete({ id: employee.id, name: `${employee.firstName} ${employee.lastName}` })}
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
                             </td>
                         </tr>)
@@ -175,6 +192,32 @@ const ListEmployeeComponent = () => {
                 </ul>
             </nav>
         )}
+        <div className='modal fade' id='deleteEmployeeModal' tabIndex='-1' aria-hidden='true'>
+            <div className='modal-dialog modal-dialog-centered'>
+                <div className='modal-content'>
+                    <div className='modal-header'>
+                        <h5 className='modal-title'>Confirm delete</h5>
+                        <button type='button' className='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+                    </div>
+                    <div className='modal-body'>
+                        {employeeToDelete?.name
+                            ? `Are you sure you want to delete ${employeeToDelete.name}?`
+                            : 'Are you sure you want to delete this employee?'}
+                    </div>
+                    <div className='modal-footer'>
+                        <button type='button' className='btn btn-outline-secondary' data-bs-dismiss='modal'>Cancel</button>
+                        <button
+                            type='button'
+                            className='btn btn-danger'
+                            data-bs-dismiss='modal'
+                            onClick={confirmDeleteEmployee}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
   )
 }
