@@ -44,14 +44,28 @@ const EmployeeComponent = () => {
                     console.log(response.data);
                     navigator('/employees');
                 }).catch(error => {
-                    console.error(error);
+                    if (error?.response?.status === 409) {
+                        setErrors((prevErrors) => ({
+                            ...prevErrors,
+                            email: 'Email already taken'
+                        }));
+                    } else {
+                        console.error(error);
+                    }
                 })
             } else {
                 createEmployee(employee).then((response) => {
                     console.log(response.data);
                     navigator('/employees')
                 }).catch(error => {
-                    console.error(error);
+                    if (error?.response?.status === 409) {
+                        setErrors((prevErrors) => ({
+                            ...prevErrors,
+                            email: 'Email already taken'
+                        }));
+                    } else {
+                        console.error(error);
+                    }
                 })
             }
         }
@@ -62,22 +76,46 @@ const EmployeeComponent = () => {
 
         const errorsCopy = {... errors}
 
+        const namePattern = /^[a-zA-Z][a-zA-Z\s'-]*$/;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
         if(firstName.trim()){
-            errorsCopy.firstName = '';
+            if(!namePattern.test(firstName.trim())){
+                errorsCopy.firstName = 'First name can only contain letters and spaces';
+                valid = false;
+            } else if(firstName.trim().length < 2){
+                errorsCopy.firstName = 'First name must be at least 2 characters';
+                valid = false;
+            } else {
+                errorsCopy.firstName = '';
+            }
         } else {
             errorsCopy.firstName = 'First name is required';
             valid = false;
         }
 
         if(lastName.trim()){
-            errorsCopy.lastName = '';
+            if(!namePattern.test(lastName.trim())){
+                errorsCopy.lastName = 'Last name can only contain letters and spaces';
+                valid = false;
+            } else if(lastName.trim().length < 2){
+                errorsCopy.lastName = 'Last name must be at least 2 characters';
+                valid = false;
+            } else {
+                errorsCopy.lastName = '';
+            }
         } else {
             errorsCopy.lastName = 'Last name is required';
             valid = false;
         }
 
         if(email.trim()){
-            errorsCopy.email = '';
+            if(!emailPattern.test(email.trim())){
+                errorsCopy.email = 'Enter a valid email address';
+                valid = false;
+            } else {
+                errorsCopy.email = '';
+            }
         } else {
             errorsCopy.email = 'Email is required';
             valid = false;
