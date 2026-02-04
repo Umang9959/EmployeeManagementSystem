@@ -4,6 +4,7 @@ import com.umang.ems_backend.dto.EmployeeDto;
 import com.umang.ems_backend.repository.EmployeeRepository;
 import com.umang.ems_backend.service.EmployeeService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,14 +35,21 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
-        List<EmployeeDto> employees = employeeService.getAllEmployees();
+    public ResponseEntity<Page<EmployeeDto>> getAllEmployees(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size
+    ) {
+        Page<EmployeeDto> employees = employeeService.getEmployeesPage(page, size);
         return ResponseEntity.ok(employees);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<EmployeeDto>> searchEmployees(@RequestParam("query") String query) {
-        List<EmployeeDto> employees = employeeService.searchEmployees(query);
+    public ResponseEntity<Page<EmployeeDto>> searchEmployees(
+            @RequestParam("query") String query,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size
+    ) {
+        Page<EmployeeDto> employees = employeeService.searchEmployees(query, page, size);
         return ResponseEntity.ok(employees);
     }
 

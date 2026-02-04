@@ -8,6 +8,9 @@ import com.umang.ems_backend.mapper.EmployeeMapper;
 import com.umang.ems_backend.repository.EmployeeRepository;
 import com.umang.ems_backend.service.EmployeeService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,6 +41,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<EmployeeDto> getAllEmployees() {
         List<Employee> employees = employeeRepository.findAll();
         return employees.stream().map((employee) -> EmployeeMapper.maptoEmployeeDto(employee)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<EmployeeDto> getEmployeesPage(int page, int size) {
+        Page<Employee> employees = employeeRepository.findAll(PageRequest.of(page, size));
+        return employees.map(EmployeeMapper::maptoEmployeeDto);
     }
 
     @Override
@@ -95,5 +104,32 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employees.stream()
                 .map(EmployeeMapper::maptoEmployeeDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<EmployeeDto> searchEmployees(String query, int page, int size) {
+        String searchValue = query == null ? "" : query.trim();
+        if (searchValue.isEmpty()) {
+            return getEmployeesPage(page, size);
+        }
+
+        if (searchValue.matches("\\d+")) {
+            Long id = Long.parseLong(searchValue);
+            Optional<Employee> employeeById = employeeRepository.findById(id);
+            if (employeeById.isPresent()) {
+                EmployeeDto dto = EmployeeMapper.maptoEmployeeDto(employeeById.get());
+                return new PageImpl<>(List.of(dto), PageRequest.of(page, size), 1);
+            }
+        }
+
+        Page<Employee> employees = employeeRepository
+                .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        searchValue,
+                        searchValue,
+                        searchValue,
+                        PageRequest.of(page, size)
+                );
+
+        return employees.map(EmployeeMapper::maptoEmployeeDto);
     }
 }

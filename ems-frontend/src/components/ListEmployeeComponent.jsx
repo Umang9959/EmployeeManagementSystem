@@ -6,23 +6,28 @@ const ListEmployeeComponent = () => {
 
     const [employees, setEmployees] = useState([])
     const [searchQuery, setSearchQuery] = useState('')
+    const [currentPage, setCurrentPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
+    const pageSize = 20
 
     const navigator = useNavigate();
 
     useEffect(() => {
-        getAllEmployees();
+        getAllEmployees(0);
     }, [])
 
     useEffect(() => {
         const handler = setTimeout(() => {
             const trimmedQuery = searchQuery.trim();
             if (!trimmedQuery) {
-                getAllEmployees();
+                getAllEmployees(0);
                 return;
             }
 
-            searchEmployees(trimmedQuery).then((response) => {
-                setEmployees(response.data);
+            searchEmployees(trimmedQuery, 0, pageSize).then((response) => {
+                setEmployees(response.data.content);
+                setTotalPages(response.data.totalPages);
+                setCurrentPage(0);
             }).catch(error => {
                 console.error(error);
             })
@@ -31,9 +36,11 @@ const ListEmployeeComponent = () => {
         return () => clearTimeout(handler);
     }, [searchQuery])
 
-    function getAllEmployees() {
-        listEmployees().then((response) => {
-            setEmployees(response.data);
+    function getAllEmployees(page = 0) {
+        listEmployees(page, pageSize).then((response) => {
+            setEmployees(response.data.content);
+            setTotalPages(response.data.totalPages);
+            setCurrentPage(page);
         }).catch(error => {
             console.error(error);
         })
@@ -41,7 +48,7 @@ const ListEmployeeComponent = () => {
 
     function clearSearch() {
         setSearchQuery('');
-        getAllEmployees();
+        getAllEmployees(0);
     }
     function addNewEmployee(){
         navigator('/add-employee')
@@ -55,10 +62,38 @@ const ListEmployeeComponent = () => {
         console.log(id);
 
         deleteEmployee(id).then((response) =>{
-            getAllEmployees();
+            if (searchQuery.trim()) {
+                handleSearchPage(currentPage)
+            } else {
+                getAllEmployees(currentPage);
+            }
         }).catch(error => {
             console.error(error);
         })
+    }
+
+    function handleSearchPage(page) {
+        const trimmedQuery = searchQuery.trim();
+        if (!trimmedQuery) {
+            getAllEmployees(page);
+            return;
+        }
+
+        searchEmployees(trimmedQuery, page, pageSize).then((response) => {
+            setEmployees(response.data.content);
+            setTotalPages(response.data.totalPages);
+            setCurrentPage(page);
+        }).catch(error => {
+            console.error(error);
+        })
+    }
+
+    function handlePageChange(page) {
+        if (searchQuery.trim()) {
+            handleSearchPage(page);
+        } else {
+            getAllEmployees(page);
+        }
     }
 
   return (
@@ -117,6 +152,29 @@ const ListEmployeeComponent = () => {
             </tbody>
         </table>
         </div>
+        {totalPages > 1 && (
+            <nav className='d-flex justify-content-center mt-3'>
+                <ul className='pagination pagination-sm mb-0'>
+                    <li className={`page-item ${currentPage === 0 ? 'disabled' : ''}`}>
+                        <button className='page-link' onClick={() => handlePageChange(currentPage - 1)}>
+                            Prev
+                        </button>
+                    </li>
+                    {Array.from({ length: totalPages }).map((_, index) => (
+                        <li key={index} className={`page-item ${currentPage === index ? 'active' : ''}`}>
+                            <button className='page-link' onClick={() => handlePageChange(index)}>
+                                {index + 1}
+                            </button>
+                        </li>
+                    ))}
+                    <li className={`page-item ${currentPage >= totalPages - 1 ? 'disabled' : ''}`}>
+                        <button className='page-link' onClick={() => handlePageChange(currentPage + 1)}>
+                            Next
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        )}
     </div>
   )
 }
