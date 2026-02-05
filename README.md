@@ -1,6 +1,8 @@
-# WorkSphere - An Employee Management System
+# WorkSphere - An Emplyee Managment System
 
-Modern employee management platform with role-based access, bulk import, filtering, and pagination.
+## About this
+
+WorkSphere is a modern employee management platform built with React and Spring Boot. It provides secure role-based access, employee CRUD, bulk Excel uploads, and fast search with filtering, sorting, and pagination in a clean, responsive UI.
 
 ![Architecture](docs/images/architecture.svg)
 
