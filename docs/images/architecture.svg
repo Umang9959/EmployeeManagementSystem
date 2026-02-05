@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-label="Architecture diagram">
+  <rect width="960" height="420" fill="#0f172a"/>
+  <text x="40" y="48" font-family="Arial, sans-serif" font-size="24" fill="#e2e8f0">Employee Management System Architecture</text>
+
+  <rect x="60" y="90" width="240" height="110" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+  <text x="80" y="130" font-family="Arial, sans-serif" font-size="16" fill="#e2e8f0">React (Vite)</text>
+  <text x="80" y="155" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">ems-frontend</text>
+
+  <rect x="360" y="90" width="240" height="110" rx="12" fill="#1e293b" stroke="#22c55e" stroke-width="2"/>
+  <text x="380" y="130" font-family="Arial, sans-serif" font-size="16" fill="#e2e8f0">Spring Boot API</text>
+  <text x="380" y="155" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">ems-backend</text>
+
+  <rect x="660" y="90" width="240" height="110" rx="12" fill="#1e293b" stroke="#facc15" stroke-width="2"/>
+  <text x="680" y="130" font-family="Arial, sans-serif" font-size="16" fill="#e2e8f0">MySQL Database</text>
+  <text x="680" y="155" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">Employee + User data</text>
+
+  <line x1="300" y1="145" x2="360" y2="145" stroke="#e2e8f0" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="600" y1="145" x2="660" y2="145" stroke="#e2e8f0" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6" fill="#e2e8f0" />
+    </marker>
+  </defs>
+
+  <rect x="60" y="240" width="840" height="120" rx="14" fill="#111827" stroke="#334155" stroke-width="1.5"/>
+  <text x="80" y="275" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">Security</text>
+  <text x="80" y="300" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">JWT auth, role-based access (ADMIN / USER), protected endpoints</text>
+</svg>

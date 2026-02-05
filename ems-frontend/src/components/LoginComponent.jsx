@@ -101,9 +101,10 @@ const LoginComponent = () => {
   }
 
   return (
-    <div className='row justify-content-center'>
+    <div className='row justify-content-center mt-6' style={{ marginTop: '6rem' }}>
       <div className='col-12 col-md-8 col-lg-5'>
         <div className='page-card login-card'>
+          
           <div className='page-header d-flex justify-content-center text-center'>
             <div className='w-100'>
               <h2 className='page-title text-center'>

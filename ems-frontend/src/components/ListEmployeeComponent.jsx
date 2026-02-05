@@ -314,28 +314,28 @@ const ListEmployeeComponent = () => {
         <table className='table table-hover align-middle table-theme'>
             <thead>
                 <tr>
-                    <th>Employee Id</th>
-                    <th>Employee First Name</th>
-                    <th>Employee Last Name</th>
-                    <th>Employee Email Id</th>
-                    <th>Employee Phone</th>
-                    <th>Department</th>
-                    {isAdmin && <th>Actions</th>}
+                    <th className='text-center'>Id</th>
+                    <th className='text-center'>First Name</th>
+                    <th className='text-center'>Last Name</th>
+                    <th className='text-center'>Email</th>
+                    <th className='text-center'>Phone</th>
+                    <th className='text-center'>Department</th>
+                    {isAdmin && <th className='text-center'>Actions</th>}
                 </tr>
             </thead>
             <tbody>
                 {
                     employees.map(employee => 
                         <tr key={employee.id}>
-                            <td>{employee.id}</td>
-                            <td>{employee.firstName}</td>
-                            <td>{employee.lastName}</td>
-                            <td>{employee.email}</td>
-                            <td>{employee.phoneNumber}</td>
-                            <td>{employee.department}</td>
+                            <td className='text-center'>{employee.id}</td>
+                            <td className='text-center'>{employee.firstName}</td>
+                            <td className='text-center'>{employee.lastName}</td>
+                            <td className='text-center'>{employee.email}</td>
+                            <td className='text-center'>{employee.phoneNumber}</td>
+                            <td className='text-center'>{employee.department}</td>
                             {isAdmin && (
-                                <td>
-                                    <div className='d-flex gap-2 flex-wrap'>
+                                <td className='text-center'>
+                                    <div className='d-flex gap-2 flex-wrap justify-content-center'>
                                         <button className='btn btn-outline-primary btn-sm' onClick={() => updateEmployee(employee.id)}>Update</button>
                                         <button
                                             className='btn btn-outline-danger btn-sm'
