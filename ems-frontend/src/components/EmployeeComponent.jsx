@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { createEmployee, getEmployee, updateEmployee } from '../services/EmployeeService'
+import { bulkUploadEmployees, createEmployee, getEmployee, updateEmployee } from '../services/EmployeeService'
 import { useNavigate, useParams } from 'react-router-dom';
+import { getAuth } from '../services/AuthStorage'
 
 const EmployeeComponent = () => {
 
@@ -10,6 +11,12 @@ const EmployeeComponent = () => {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [countryCode, setCountryCode] = useState('+91')
     const [department, setDepartment] = useState('')
+    const [uploadFile, setUploadFile] = useState(null)
+    const [uploadResult, setUploadResult] = useState(null)
+    const [uploadError, setUploadError] = useState('')
+    const [uploading, setUploading] = useState(false)
+    const [fileInputKey, setFileInputKey] = useState(0)
+    const [redirectCountdown, setRedirectCountdown] = useState(null)
 
     const {id} = useParams();
     const [errors, setErrors] = useState({
@@ -21,6 +28,7 @@ const EmployeeComponent = () => {
     })
 
     const navigator = useNavigate();
+    const isAdmin = getAuth()?.role === 'ADMIN'
 
     useEffect(() => {
 
@@ -46,6 +54,29 @@ const EmployeeComponent = () => {
         }
 
     }, [id])
+
+    useEffect(() => {
+        if (redirectCountdown === null) {
+            return undefined
+        }
+
+        if (redirectCountdown <= 0) {
+            navigator('/employees')
+            return undefined
+        }
+
+        const timer = setTimeout(() => {
+            setRedirectCountdown((prev) => (prev === null ? null : prev - 1))
+        }, 1000)
+
+        return () => clearTimeout(timer)
+    }, [redirectCountdown, navigator])
+
+    useEffect(() => {
+        return () => {
+            releaseBodyScrollLock()
+        }
+    }, [])
 
     function saveOrUpdateEmployee(e){
         e.preventDefault();
@@ -95,6 +126,42 @@ const EmployeeComponent = () => {
                 })
             }
         }
+    }
+
+    function handleUpload() {
+        if (!uploadFile) {
+            setUploadError('Please select an Excel file to upload.');
+            return;
+        }
+        setUploading(true);
+        setUploadError('');
+        setUploadResult(null);
+
+        bulkUploadEmployees(uploadFile)
+            .then((response) => {
+                const result = response.data;
+                setUploadResult(result);
+                setUploadFile(null);
+                setFileInputKey((prev) => prev + 1);
+                if (result?.failureCount === 0) {
+                    setRedirectCountdown(5);
+                } else {
+                    setRedirectCountdown(null);
+                }
+            })
+            .catch((error) => {
+                const message = error?.response?.data?.message || 'Upload failed. Please try again.';
+                setUploadError(message);
+                setRedirectCountdown(null);
+            })
+            .finally(() => setUploading(false));
+    }
+
+    function releaseBodyScrollLock() {
+        document.body.classList.remove('modal-open')
+        document.body.style.removeProperty('padding-right')
+        document.body.style.removeProperty('overflow')
+        document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove())
     }
 
     function validateForm(){
@@ -192,6 +259,55 @@ const EmployeeComponent = () => {
   return (
     <div className='row justify-content-center'>
         <div className='col-12 col-lg-7'>
+            {isAdmin && !id && (
+                <div className='page-card mb-4'>
+                    <div className='page-header'>
+                        <div>
+                            <h2 className='page-title'>Bulk upload employees</h2>
+                            <p className='page-subtitle mb-0'>Upload an Excel file (.xlsx or .xls) with First Name, Last Name, Email, Phone Number, and Department.</p>
+                        </div>
+                    </div>
+                    <div className='d-flex flex-column flex-lg-row gap-3 align-items-lg-center'>
+                        <div className='flex-grow-1'>
+                            <input
+                                key={fileInputKey}
+                                className='form-control'
+                                type='file'
+                                accept='.xlsx,.xls'
+                                onChange={(event) => setUploadFile(event.target.files?.[0] || null)}
+                            />
+                        </div>
+                        <div className='d-flex gap-2'>
+                            <button className='btn btn-primary' type='button' onClick={handleUpload} disabled={uploading}>
+                                {uploading ? 'Uploading...' : 'Upload'}
+                            </button>
+                        </div>
+                    </div>
+                    {uploadError && (
+                        <div className='alert alert-danger mt-3 mb-0'>{uploadError}</div>
+                    )}
+                    {uploadResult && (
+                        <div className='alert alert-success mt-3 mb-0'>
+                            Uploaded {uploadResult.successCount} of {uploadResult.totalRows} rows. {uploadResult.failureCount} failed.
+                            {uploadResult.errors?.length > 0 && (
+                                <ul className='mt-2 mb-0'>
+                                    {uploadResult.errors.slice(0, 5).map((error, index) => (
+                                        <li key={`${error.rowNumber}-${index}`}>Row {error.rowNumber}: {error.message}</li>
+                                    ))}
+                                    {uploadResult.errors.length > 5 && (
+                                        <li>And {uploadResult.errors.length - 5} more errors...</li>
+                                    )}
+                                </ul>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+            {redirectCountdown !== null && (
+                <div className='text-center text-danger fw-semibold mb-4'>
+                    Redirecting you to the home page in {redirectCountdown} seconds...
+                </div>
+            )}
             <div className='page-card'>
                 <div className='page-header'>
                     <div>

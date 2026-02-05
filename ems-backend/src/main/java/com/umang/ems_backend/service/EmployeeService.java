@@ -1,6 +1,8 @@
 package com.umang.ems_backend.service;
 
 import com.umang.ems_backend.dto.EmployeeDto;
+import com.umang.ems_backend.dto.BulkUploadResponse;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -21,5 +23,9 @@ public interface EmployeeService {
     List<EmployeeDto> searchEmployees(String query);
 
     Page<EmployeeDto> searchEmployees(String query, int page, int size);
+
+    BulkUploadResponse bulkUploadEmployees(MultipartFile file);
+
+    void deleteAllEmployees();
 
 }

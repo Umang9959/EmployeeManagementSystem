@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { deleteEmployee, listEmployees, searchEmployees } from '../services/EmployeeService'
+import { deleteAllEmployees, deleteEmployee, listEmployees, searchEmployees } from '../services/EmployeeService'
 import { useNavigate } from 'react-router-dom'
 import { getAuth, isAuthenticated } from '../services/AuthStorage'
 
@@ -11,6 +11,9 @@ const ListEmployeeComponent = () => {
     const [totalPages, setTotalPages] = useState(0)
     const pageSize = 20
     const [employeeToDelete, setEmployeeToDelete] = useState(null)
+    const [deleteAllInput, setDeleteAllInput] = useState('')
+    const [deleteAllError, setDeleteAllError] = useState('')
+    const [deletingAll, setDeletingAll] = useState(false)
 
     const navigator = useNavigate();
     const isAdmin = getAuth()?.role === 'ADMIN'
@@ -52,8 +55,9 @@ const ListEmployeeComponent = () => {
             }
 
             searchEmployees(trimmedQuery, 0, pageSize).then((response) => {
-                setEmployees(response.data.content);
-                setTotalPages(response.data.totalPages);
+                const { content, totalPages } = normalizePageResponse(response, pageSize);
+                setEmployees(content);
+                setTotalPages(totalPages);
                 setCurrentPage(0);
             }).catch(error => {
                 console.error(error);
@@ -65,8 +69,9 @@ const ListEmployeeComponent = () => {
 
     function getAllEmployees(page = 0) {
         listEmployees(page, pageSize).then((response) => {
-            setEmployees(response.data.content);
-            setTotalPages(response.data.totalPages);
+            const { content, totalPages } = normalizePageResponse(response, pageSize);
+            setEmployees(content);
+            setTotalPages(totalPages);
             setCurrentPage(page);
         }).catch(error => {
             console.error(error);
@@ -113,12 +118,31 @@ const ListEmployeeComponent = () => {
         }
 
         searchEmployees(trimmedQuery, page, pageSize).then((response) => {
-            setEmployees(response.data.content);
-            setTotalPages(response.data.totalPages);
+            const { content, totalPages } = normalizePageResponse(response, pageSize);
+            setEmployees(content);
+            setTotalPages(totalPages);
             setCurrentPage(page);
         }).catch(error => {
             console.error(error);
         })
+    }
+
+    function normalizePageResponse(response, fallbackSize) {
+        const data = response?.data || {};
+        const content = Array.isArray(data.content) ? data.content : Array.isArray(data) ? data : [];
+        const pageMeta = data.page || {};
+        const totalElements = typeof data.totalElements === 'number'
+            ? data.totalElements
+            : (typeof pageMeta.totalElements === 'number' ? pageMeta.totalElements : content.length);
+        const size = typeof data.size === 'number' && data.size > 0
+            ? data.size
+            : (typeof pageMeta.size === 'number' && pageMeta.size > 0 ? pageMeta.size : fallbackSize);
+        const computedPages = Math.max(1, Math.ceil(totalElements / size));
+        const apiTotalPages = typeof data.totalPages === 'number'
+            ? data.totalPages
+            : (typeof pageMeta.totalPages === 'number' ? pageMeta.totalPages : 0);
+        const totalPages = Math.max(computedPages, apiTotalPages);
+        return { content, totalPages };
     }
 
     function handlePageChange(page) {
@@ -129,12 +153,63 @@ const ListEmployeeComponent = () => {
         }
     }
 
+
+    function resetDeleteAllState() {
+        setDeleteAllInput('');
+        setDeleteAllError('');
+        setDeletingAll(false);
+    }
+
+    function handleDeleteAllConfirm() {
+        if (deleteAllInput.trim() !== 'Delete all employees') {
+            setDeleteAllError('Type "Delete all employees" to confirm.');
+            return;
+        }
+        setDeletingAll(true);
+        setDeleteAllError('');
+
+        deleteAllEmployees()
+            .then(() => {
+                resetDeleteAllState();
+                closeModal('deleteAllEmployeesModal');
+                getAllEmployees(0);
+            })
+            .catch((error) => {
+                const message = error?.response?.data?.message || 'Failed to delete employees. Please try again.';
+                setDeleteAllError(message);
+            })
+            .finally(() => setDeletingAll(false));
+    }
+
+    function closeModal(modalId) {
+        const modalElement = document.getElementById(modalId);
+        if (!modalElement) {
+            return;
+        }
+
+        if (window.bootstrap?.Modal) {
+            const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.hide();
+            return;
+        }
+
+        modalElement.classList.remove('show');
+        modalElement.setAttribute('aria-hidden', 'true');
+        modalElement.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+    }
+
   return (
     <div className='page-card'>
         <div className='page-header'>
             <div>
                 <h2 className='page-title'>All Employees</h2>
-                <p className='page-subtitle'>Manage your team, update records, and keep everything organized.</p>
+                <p className='page-subtitle'>
+                    {isAdmin
+                        ? 'Manage your team, update records, and keep everything organized.'
+                        : 'Browse employee details and stay up to date.'}
+                </p>
             </div>
             
         </div>
@@ -154,6 +229,17 @@ const ListEmployeeComponent = () => {
                 />
             </div>
             <button className='btn btn-outline-secondary' onClick={clearSearch}>Clear</button>
+            {isAdmin && (
+                <button
+                    className='btn btn-outline-danger ms-auto'
+                    type='button'
+                    data-bs-toggle='modal'
+                    data-bs-target='#deleteAllEmployeesModal'
+                    onClick={resetDeleteAllState}
+                >
+                    Delete All
+                </button>
+            )}
         </div>
         <div className='table-responsive'>
         <table className='table table-hover align-middle table-theme'>
@@ -244,6 +330,43 @@ const ListEmployeeComponent = () => {
                                 onClick={confirmDeleteEmployee}
                             >
                                 Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+        {isAdmin && (
+            <div className='modal fade' id='deleteAllEmployeesModal' tabIndex='-1' aria-hidden='true'>
+                <div className='modal-dialog modal-dialog-centered'>
+                    <div className='modal-content'>
+                        <div className='modal-header'>
+                            <h5 className='modal-title text-danger'>Delete All Employees</h5>
+                            <button type='button' className='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+                        </div>
+                        <div className='modal-body'>
+                            <p className='mb-3'>This action cannot be undone. To confirm, type <strong>Delete all employees</strong> below.</p>
+                            <input
+                                type='text'
+                                className={`form-control ${deleteAllError ? 'is-invalid' : ''}`}
+                                value={deleteAllInput}
+                                onChange={(event) => setDeleteAllInput(event.target.value)}
+                                onPaste={(event) => event.preventDefault()}
+                                onCopy={(event) => event.preventDefault()}
+                                onCut={(event) => event.preventDefault()}
+                                placeholder='Type here to confirm'
+                            />
+                            {deleteAllError && <div className='invalid-feedback'>{deleteAllError}</div>}
+                        </div>
+                        <div className='modal-footer'>
+                            <button type='button' className='btn btn-outline-secondary' data-bs-dismiss='modal'>Cancel</button>
+                            <button
+                                type='button'
+                                className='btn btn-danger'
+                                onClick={handleDeleteAllConfirm}
+                                disabled={deletingAll}
+                            >
+                                {deletingAll ? 'Deleting...' : 'Confirm'}
                             </button>
                         </div>
                     </div>

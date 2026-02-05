@@ -1,5 +1,6 @@
 package com.umang.ems_backend.controller;
 
+import com.umang.ems_backend.dto.BulkUploadResponse;
 import com.umang.ems_backend.dto.EmployeeDto;
 import com.umang.ems_backend.repository.EmployeeRepository;
 import com.umang.ems_backend.service.EmployeeService;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -71,5 +73,19 @@ public class EmployeeController {
     public ResponseEntity<String> deleteEmployee(@PathVariable("id") Long employeeId) {
         employeeService.deleteEmployee(employeeId);
         return ResponseEntity.ok("Employee deleted successfully!");
+    }
+
+    @PostMapping("/bulk-upload")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkUploadResponse> bulkUploadEmployees(@RequestParam("file") MultipartFile file) {
+        BulkUploadResponse response = employeeService.bulkUploadEmployees(file);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteAllEmployees() {
+        employeeService.deleteAllEmployees();
+        return ResponseEntity.ok("All employees deleted successfully!");
     }
 }

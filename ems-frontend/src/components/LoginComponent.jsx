@@ -103,14 +103,16 @@ const LoginComponent = () => {
   return (
     <div className='row justify-content-center'>
       <div className='col-12 col-md-8 col-lg-5'>
-        <div className='card page-card shadow-sm login-card'>
-          <div className='card-header bg-white border-0 pt-4 px-4 text-center'>
-            <h2 className='page-title'>
-              Welcome to <span className='brand-gradient'>WorkSphere</span>
-            </h2>
-            <p className='page-subtitle mb-0'>Sign in to access your dashboard.</p>
+        <div className='page-card login-card'>
+          <div className='page-header d-flex justify-content-center text-center'>
+            <div className='w-100'>
+              <h2 className='page-title text-center'>
+                Welcome to <span className='brand-gradient'>WorkSphere</span>
+              </h2>
+              <p className='page-subtitle mb-0 text-center'>Sign in to access your dashboard.</p>
+            </div>
           </div>
-          <div className='card-body px-4 pb-4'>
+          <div>
             <form onSubmit={handleSubmit}>
               {apiError && (
                 <div
@@ -121,10 +123,10 @@ const LoginComponent = () => {
                 </div>
               )}
               <div className='form-group mb-3'>
-                <label className='form-label'>{isSignUp ? 'User Name' : 'Email'}</label>
+                <label className='form-label'>Email</label>
                 <input
                   type='email'
-                  placeholder={isSignUp ? 'Enter your user name' : 'Enter your email'}
+                  placeholder='Enter your email'
                   name='email'
                   value={email}
                   className={`form-control form-control-lg ${errors.email ? 'is-invalid' : ''}`}
