@@ -1,4 +1,4 @@
-# Employee Management System
+# WorkSphere - An Employee Management System
 
 Modern employee management platform with role-based access, bulk import, filtering, and pagination.
 
