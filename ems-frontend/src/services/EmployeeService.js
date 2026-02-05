@@ -2,8 +2,10 @@ import apiClient from "./apiClient";
 
 const REST_API_BASE_URL = 'http://localhost:8081/api/employees';
 
-export const listEmployees = (page = 0, size = 20) =>
-	apiClient.get(REST_API_BASE_URL, { params: { page, size } });
+export const listEmployees = (page = 0, size = 20, departments = [], sortDir = 'asc') => {
+	const department = Array.isArray(departments) ? departments.join(',') : departments;
+	return apiClient.get(REST_API_BASE_URL, { params: { page, size, department, sortDir } });
+};
 
 export const searchEmployees = (query, page = 0, size = 20) =>
 	apiClient.get(REST_API_BASE_URL + '/search', { params: { query, page, size } });

@@ -43,9 +43,14 @@ public class EmployeeController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<Page<EmployeeDto>> getAllEmployees(
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "20") int size
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "department", required = false) String department,
+            @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir
     ) {
-        Page<EmployeeDto> employees = employeeService.getEmployeesPage(page, size);
+        List<String> departments = department == null || department.trim().isEmpty()
+                ? List.of()
+                : List.of(department.split(","));
+        Page<EmployeeDto> employees = employeeService.getEmployeesPage(page, size, departments, sortDir);
         return ResponseEntity.ok(employees);
     }
 

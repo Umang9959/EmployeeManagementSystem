@@ -11,6 +11,8 @@ const ListEmployeeComponent = () => {
     const [totalPages, setTotalPages] = useState(0)
     const pageSize = 20
     const [employeeToDelete, setEmployeeToDelete] = useState(null)
+    const [departmentFilter, setDepartmentFilter] = useState([])
+    const [sortDirection, setSortDirection] = useState('asc')
     const [deleteAllInput, setDeleteAllInput] = useState('')
     const [deleteAllError, setDeleteAllError] = useState('')
     const [deletingAll, setDeletingAll] = useState(false)
@@ -21,6 +23,13 @@ const ListEmployeeComponent = () => {
     useEffect(() => {
         getAllEmployees(0);
     }, [])
+
+    useEffect(() => {
+        if (searchQuery.trim()) {
+            return
+        }
+        getAllEmployees(0)
+    }, [departmentFilter, sortDirection])
 
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -68,13 +77,22 @@ const ListEmployeeComponent = () => {
     }, [searchQuery])
 
     function getAllEmployees(page = 0) {
-        listEmployees(page, pageSize).then((response) => {
+        listEmployees(page, pageSize, departmentFilter, sortDirection).then((response) => {
             const { content, totalPages } = normalizePageResponse(response, pageSize);
             setEmployees(content);
             setTotalPages(totalPages);
             setCurrentPage(page);
         }).catch(error => {
             console.error(error);
+        })
+    }
+
+    function toggleDepartmentFilter(value) {
+        setDepartmentFilter((prev) => {
+            if (prev.includes(value)) {
+                return prev.filter((item) => item !== value)
+            }
+            return [...prev, value]
         })
     }
 
@@ -229,6 +247,57 @@ const ListEmployeeComponent = () => {
                 />
             </div>
             <button className='btn btn-outline-secondary' onClick={clearSearch}>Clear</button>
+            <div className='dropdown'>
+                <button
+                    className='btn btn-outline-secondary dropdown-toggle'
+                    type='button'
+                    data-bs-toggle='dropdown'
+                    aria-expanded='false'
+                >
+                    {departmentFilter.length ? `Departments (${departmentFilter.length})` : 'All Departments'}
+                </button>
+                <ul className='dropdown-menu p-3' style={{ minWidth: '240px' }}>
+                    {[
+                        'Engineering & Tech',
+                        'Finance',
+                        'Business Development',
+                        'CEO & Director',
+                        'HR',
+                        'IT & Admin',
+                        'Sales'
+                    ].map((dept) => (
+                        <li key={dept} className='form-check mb-2'>
+                            <input
+                                className='form-check-input'
+                                type='checkbox'
+                                id={`dept-${dept}`}
+                                checked={departmentFilter.includes(dept)}
+                                onChange={() => toggleDepartmentFilter(dept)}
+                            />
+                            <label className='form-check-label' htmlFor={`dept-${dept}`}>
+                                {dept}
+                            </label>
+                        </li>
+                    ))}
+                    <li>
+                        <button
+                            type='button'
+                            className='btn btn-sm btn-outline-secondary w-100'
+                            onClick={() => setDepartmentFilter([])}
+                        >
+                            Clear departments
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <select
+                className='form-select w-auto'
+                value={sortDirection}
+                onChange={(event) => setSortDirection(event.target.value)}
+            >
+                <option value='asc'>First name (A–Z)</option>
+                <option value='desc'>First name (Z–A)</option>
+            </select>
             {isAdmin && (
                 <button
                     className='btn btn-outline-danger ms-auto'

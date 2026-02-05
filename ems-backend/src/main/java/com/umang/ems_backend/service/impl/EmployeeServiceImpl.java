@@ -14,6 +14,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -60,8 +61,22 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<EmployeeDto> getEmployeesPage(int page, int size) {
-        Page<Employee> employees = employeeRepository.findAll(PageRequest.of(page, size));
+    public Page<EmployeeDto> getEmployeesPage(int page, int size, List<String> departments, String sortDir) {
+        List<String> normalizedDepartments = departments == null
+                ? List.of()
+                : departments.stream()
+                    .filter(value -> value != null && !value.trim().isEmpty())
+                    .map(String::trim)
+                    .toList();
+        Sort.Direction direction = "desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, "firstName"));
+
+        Page<Employee> employees;
+        if (normalizedDepartments.isEmpty()) {
+            employees = employeeRepository.findAll(pageRequest);
+        } else {
+            employees = employeeRepository.findByDepartmentIn(normalizedDepartments, pageRequest);
+        }
         return employees.map(EmployeeMapper::maptoEmployeeDto);
     }
 
@@ -136,7 +151,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Page<EmployeeDto> searchEmployees(String query, int page, int size) {
         String searchValue = query == null ? "" : query.trim();
         if (searchValue.isEmpty()) {
-            return getEmployeesPage(page, size);
+            return getEmployeesPage(page, size, List.of(), "asc");
         }
 
         if (searchValue.matches("\\d+")) {

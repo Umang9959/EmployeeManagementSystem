@@ -14,7 +14,7 @@ public interface EmployeeService {
 
     List<EmployeeDto> getAllEmployees();
 
-    Page<EmployeeDto> getEmployeesPage(int page, int size);
+    Page<EmployeeDto> getEmployeesPage(int page, int size, List<String> departments, String sortDir);
 
     EmployeeDto updateEmployee(Long employeeId, EmployeeDto updatedEmployee);
 

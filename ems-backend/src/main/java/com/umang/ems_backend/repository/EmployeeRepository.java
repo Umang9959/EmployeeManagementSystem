@@ -39,4 +39,6 @@ public interface EmployeeRepository extends JpaRepository <Employee, Long>{
 	Optional<Employee> findByEmailIgnoreCase(String email);
 
 	Optional<Employee> findByPhoneNumber(String phoneNumber);
+
+	Page<Employee> findByDepartmentIn(List<String> departments, Pageable pageable);
 }
