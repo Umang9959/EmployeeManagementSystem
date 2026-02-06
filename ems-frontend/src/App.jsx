@@ -1,6 +1,5 @@
 import './App.css'
 import EmployeeComponent from './components/EmployeeComponent'
-import FooterComponent from './components/FooterComponent'
 import HeaderComponent from './components/HeaderComponent'
 import ListEmployeeComponent from './components/ListEmployeeComponent'
 import LoginComponent from './components/LoginComponent'
@@ -59,7 +58,6 @@ function App() {
               </Routes>
             </div>
           </main>
-          <FooterComponent />
         </div>
       </BrowserRouter>
     </>
