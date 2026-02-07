@@ -1,6 +1,7 @@
 import apiClient from "./apiClient";
 
-const AUTH_API_BASE_URL = 'http://localhost:8081/api/auth';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const AUTH_API_BASE_URL = `${API_BASE_URL}/api/auth`;
 
 export const loginUser = (payload) => apiClient.post(AUTH_API_BASE_URL + '/login', payload);
 

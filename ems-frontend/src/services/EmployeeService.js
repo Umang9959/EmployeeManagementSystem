@@ -1,6 +1,7 @@
 import apiClient from "./apiClient";
 
-const REST_API_BASE_URL = 'http://localhost:8081/api/employees';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const REST_API_BASE_URL = `${API_BASE_URL}/api/employees`;
 
 export const listEmployees = (page = 0, size = 20, departments = [], sortDir = 'asc') => {
 	const department = Array.isArray(departments) ? departments.join(',') : departments;
